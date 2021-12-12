@@ -1,0 +1,66 @@
+---
+title: "tast4_rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## load libraries
+
+```{r load_libraries}
+library(here)
+library(sf)
+library(tidyverse)
+library(janitor)
+library(countrycode)
+```
+
+## read in data
+
+Located within the data folder:
+
+-   HDI data from:<http://hdr.undp.org/en/indicators/68606#>
+
+-   shapefile from:<https://hub.arcgis.com/datasets/2b93b06dc0dc4e809d3c8db5cb96ba69_0/explore?location=-2.688200%2C0.000000%2C1.41>
+
+```{r}
+HDI <- read_csv(here("data",
+                        "Gender Inequality Index.csv"),
+                   locale = locale(encoding = "latin1"),
+                   na="..")
+
+countries <- st_read(here("data",
+                          "World_Countries_(Generalized)",
+                          "World_Countries__Generalized_.shp"))
+```
+
+## data wrangling
+
+select columns we want and change country name to country code, using the "countrycode" package
+
+we could also just join it without this on the country name column
+
+```{r}
+HDIcol <- HDI %>% 
+  clean_names() %>% 
+  select(country,x2010,x2019) %>% 
+  mutate(difference=x2019-x2010) %>% 
+  slice(1:189,) %>% 
+  mutate(iso_code=countrycode(country,origin='country.name',destination='iso2c'))
+ ```
+
+## join the data
+
+join the csv to world shape file
+
+```{r}
+## join the data
+HDI_country <- countries %>% 
+  clean_names() %>% 
+  left_join(.,
+            HDIcol,
+            # small idlands have been considered in the country value not their own value 
+            by=c("aff_iso"="iso_code")) 
+```
