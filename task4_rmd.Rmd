@@ -57,7 +57,7 @@ HDIcol <- HDI %>%
 ## rename x2019
 ```{r}
 HDIcol <- HDIcol %>% 
-  dplyr::rename("2019_gender_inquality_index"=x2019)
+  dplyr::rename("2019_gender_inequality_index"=x2019)
 ```
 
 
