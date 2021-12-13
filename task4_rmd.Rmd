@@ -15,6 +15,8 @@ library(sf)
 library(tidyverse)
 library(janitor)
 library(countrycode)
+library(tmap)
+library(tmaptools)
 ```
 
 ## read in data
@@ -49,11 +51,20 @@ HDIcol <- HDI %>%
   mutate(difference=x2019-x2010) %>% 
   slice(1:189,) %>% 
   mutate(iso_code=countrycode(country,origin='country.name',destination='iso2c'))
- ```
+
+```
+
+## rename x2019
+```{r}
+HDIcol <- HDIcol %>% 
+  dplyr::rename("2019_gender_inquality_index"=x2019)
+```
+
 
 ## join the data
 
 join the csv to world shape file
+
 
 ```{r}
 ## join the data
@@ -64,3 +75,76 @@ HDI_country <- countries %>%
             # small idlands have been considered in the country value not their own value 
             by=c("aff_iso"="iso_code")) 
 ```
+
+## map making
+
+```{r}
+HDI_country2 <- HDI_country %>% 
+  mutate(summary=case_when(difference>0 ~ "improved",
+                           difference=0 ~ "the same",
+                           TRUE ~ "worse"))
+```
+
+```{r}
+tmap_mode="plot"
+qtm(HDI_country,fill="difference")
+```
+
+
+```{r}
+breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+diff_breaks = c(-0.4, -0.3, -0.2, -0.1, 0.0, 0.1)
+
+HDI_country <- HDI_country %>% 
+  st_transform(.,crs = "+proj=moll")
+
+# plot each map
+tm1 <- tm_shape(HDI_country) + 
+  tm_polygons("2019_gender_inquality_index", 
+              breaks=breaks,
+              palette="PuBu",
+              border.alpha = 0.5)+
+  tm_legend(show=FALSE)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(a)", position=c(0,0.85), size=1.5)
+
+tm2 <- tm_shape(HDI_country) + 
+  tm_polygons("x2010",
+              breaks=breaks, 
+              palette="PuBu",
+              border.alpha = 0.5) + 
+  tm_legend(show=FALSE)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(b)", position=c(0,0.85), size=1.5)
+
+tm3 <- tm_shape(HDI_country) + 
+  tm_polygons("difference",
+              breaks=diff_breaks, 
+              palette="-Blues",
+              midpoint=NA,
+              border.alpha = 0.5) + 
+  tm_legend(show=FALSE)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(c)", position=c(0,0.85), size=1.5)
+
+legend <- tm_shape(HDI_country) +
+    tm_polygons("2019_gender_inquality_index",
+                breaks=breaks,
+                palette="-PuBu") +
+    tm_legend(show=TRUE)+
+    tm_layout(legend.only = TRUE, legend.position=c(0.3,0.25),asp=0.1)+
+    tm_shape(HDI_country) +
+    tm_polygons("difference",
+                palette="-Blues",
+                midpoint=NA) +
+    # tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.6,0.6))+
+    tm_layout(legend.only = TRUE, legend.position=c(0.1,0.1),asp=0.1)+
+    tm_credits("Mapped data:\nUN Gender Inequality Index\nWorld outline:\nArcGIS Hub",
+               position=c(0.3,0.2),just = "left")
+  
+t=tmap_arrange(tm1, tm2, tm3, legend, ncol=2)
+
+t
+```
+
