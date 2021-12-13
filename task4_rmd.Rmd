@@ -84,11 +84,23 @@ HDI_country2 <- HDI_country %>%
                            difference=0 ~ "the same",
                            TRUE ~ "worse"))
 ```
+## inspect the map with qtm
 
 ```{r}
 tmap_mode="plot"
 qtm(HDI_country,fill="difference")
 ```
+## mapping 
+
+plan to make four quadrant maps
+
+map1 for 2019_gender_inequality_index
+
+map2 for 2010_gender_inequality_index
+
+map3 for difference between 2019 and 2010 gender inequality index
+
+map4 for legend
 
 
 ```{r}
@@ -100,7 +112,7 @@ HDI_country <- HDI_country %>%
 
 # plot each map
 tm1 <- tm_shape(HDI_country) + 
-  tm_polygons("2019_gender_inquality_index", 
+  tm_polygons("2019_gender_inequality_index", 
               breaks=breaks,
               palette="PuBu",
               border.alpha = 0.5)+
@@ -128,7 +140,7 @@ tm3 <- tm_shape(HDI_country) +
   tm_credits("(c)", position=c(0,0.85), size=1.5)
 
 legend <- tm_shape(HDI_country) +
-    tm_polygons("2019_gender_inquality_index",
+    tm_polygons("2019_gender_inequality_index",
                 breaks=breaks,
                 palette="-PuBu") +
     tm_legend(show=TRUE)+

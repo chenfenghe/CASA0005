@@ -1,0 +1,13 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+## temp analysis
+
+```{r temp_analysis,echo=TRUE}
+library(raster)
+library(here)
+jan <- raster(here("wc2.1_5m_tavg_01.tif"))
+plot(jan)
+```
